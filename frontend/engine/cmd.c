@@ -236,10 +236,35 @@ void tile_build (void){
 //4 byte x, 4 byte y
 void tile_clear (void){
     uint32_t x, y;
+    int32_t id;
     fread(&x, 4, 1, stdin);
     fread(&y, 4, 1, stdin);
+    if(x<0 || y<0 || x>(*game_state).map.x || y>(*game_state).map.y){
+        //error
+    }
     uint64_t ptr=lv[3].ptr;
-    *(int32_t *)((int32_t *)ptr+y*(*game_state).map.x+x)=0;
+    id=*(int32_t*)(base_ptr+lv[7].ptr + (y*(*game_state).map.x+x)*4);
+
+    uint8_t id_x, id_y;
+
+    id_x=*(uint_t*)(base_ptr+lv[1].ptr + id*2);
+    id_y=*(uint_t*)(base_ptr+lv[1].ptr + id*2+1); 
+    int32_t new_x, new_y;
+    
+    new_x=x-id_x +1;
+    new_y=y+id_y -1;
+    if(new_x<0 || new_y<0 || new_x>(*game_state).map.x || new_y>(*game_state).map.y){
+        //error
+    }
+    int32_t erase_x=x, erase_y=y;
+    while(erase_y<=new_y){
+        while(erase_x>=new_x){
+            *(int32_t*)(base_ptr+lv[7].ptr + (erase_y*(*game_state).map.x + erase_x)*4)=0;
+            erase_x--;
+        }
+        erase_y++;
+    }
+    //*(int32_t *)((int32_t *)ptr+y*(*game_state).map.x+x)=0;
 
     return;
 }
